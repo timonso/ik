@@ -1,7 +1,8 @@
 ## demo project.
 #### project setup:
-[tutorial for setting up visual studio with unreal](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-visual-studio-development-environment-for-cplusplus-projects-in-unreal-engine)
-launch the 5.5 version of Unreal from the Epic Games Launcher.
+Install Epic Game launcher from Unreal website and the unreal version 5.5, if you don't have it already. Then, follow this tutorial to install and set up visual studio for Unreal Engine: [here](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-visual-studio-development-environment-for-cplusplus-projects-in-unreal-engine), this is the recommended choice for compatibility, but feel free to use any other code editor if you prefer.
+
+once installed, launch the 5.5 version of Unreal from the Epic Games Launcher.
 
 ![alt text](images/01-unrealEditor-two.png "unrealEngineVersion_ik")
 
