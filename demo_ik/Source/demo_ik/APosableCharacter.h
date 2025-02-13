@@ -58,14 +58,6 @@ public:
 	AAPosableCharacter();
 
 	/**
-	* initialize the posable mesh component from a source skeletal mesh component.
-	* @param source_skeletalMeshReference: a reference to a skeletal mesh component
-	*	if nullptr it uses the actor's skeletal mesh component.  
-	* @return: true if the initialization was successful, false otherwise
-	**/
-	bool initialize(USkeletalMesh* source_skeletalMeshReference = nullptr);
-
-	/**
 	* simplified function for student example, without parameters.
 	* @return: true if the initialization was successful, false otherwise
 	**/

@@ -29,32 +29,6 @@ AAPosableCharacter::AAPosableCharacter()
 	}
 }
 
-bool AAPosableCharacter::initialize(USkeletalMesh* source_skeletalMeshReference)
-{
-	// select the proper source skeletal mesh reference.
-	USkeletalMesh* selected_skeletalMeshReference = source_skeletalMeshReference;
-	if (!selected_skeletalMeshReference)
-	{
-		if (!default_skeletalMesh_reference)
-		{
-			UE_LOG(LogTemp, Warning, TEXT("No skeletal mesh reference provided."));
-			return false;
-		}
-		selected_skeletalMeshReference = default_skeletalMesh_reference;
-	}
-
-	// initialization checks to avoid crashes.
-	if (!posableMeshComponent_reference)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Posable mesh component not attached or registerd"));
-		return false;
-	}
-
-	// set up the poseable mesh component.
-	posableMeshComponent_reference->SetSkinnedAssetAndUpdate(selected_skeletalMeshReference);
-	return true;
-}
-
 bool AAPosableCharacter::initializePosableMesh()
 {
 	// initialization checks to avoid crashes.
