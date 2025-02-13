@@ -1,5 +1,58 @@
-## demo project.
-#### project setup:
+## demo project
+#### what is this?
+this is a guide (+ the code) to set up a simple Unreal Engine environment to access and edit the kinematic properties of a rigged mesh character directly through c++ code. The guide and the code are specifically tested on Windows 11, but some part might be used also for Linux and Mac, specifically the Unreal part. 
+#### project structure.
+the project include a tutorial specifically design for Unreal Engine 5 (that you can find [down here](#tutorial)). And two main folders with the code. The folder `demo_ik` include the full Unreal Engine 5.5.3 project, including the assets, you can use it as starting project for your work, or to verify that you didn't miss any step of the tutorial. Similarly, `demo_ik_ue4` include the same project but with few edits to be compatible with Unreal Engine 4, specifically the version 4.27.2.  Both the folder has the same structure, that follow the default structure of an Unreal engine project:
+```
+demo_ik
+ ┣ .gitignore
+ ┣ demo_ik.uproject
+ ┣ Config
+	┣ DefaultEditor.ini
+	┣ DefaultEditorPerProjectUserSettings.ini
+	┣ DefaultEngine.ini
+	┣ DefaultGame.ini
+	┗ DefaultInput.ini
+ ┣ Content
+	┣ Characters
+	┣ LevelPrototyping
+	┣ StarterContent
+	┣ ThirdPerson
+	┗ maps
+ ┗ Source
+	┣ demo_ik.Target.cs
+	┣ demo_ikEditor.Target.cs
+	┗ demo_ik
+	   ┣ APosableCharacter.cpp
+	   ┣ APosableCharacter.h
+	   ┣ demo_ik.Build.cs
+	   ┣ demo_ik.cpp
+	   ┣ demo_ik.h
+	   ┣ demo_ikCharacter.cpp
+	   ┣ demo_ikCharacter.h
+	   ┣ demo_ikGameMode.cpp
+	   ┗ demo_ikGameMode.h
+```
+the file created in the tutorial are the two `APosableCharacter.h` and `APosableCharacter.cpp`, that you can find here:
+```
+demo_ik
+ ┣ ...
+ ┗ Source
+	┣ ...
+	┗ demo_ik
+	   ┣ APosableCharacter.cpp
+	   ┣ APosableCharacter.h
+	   ┣ ...
+```
+#### how to use?
+If you want to try to directly use the provided code, first install the desired unreal engine version and the visual studio editor (check [project setup](#project-setup) session in the tutorial). Then you can clone or download the project code in your computer. Place them in a desired folder, and you can directly run it from there. 
+If you have any compilation problem, unreal will suggest to rebuild the project from source. To access the source code, open the project folder and right-click on `demo_ik.uproject` and click on `Generate Visual Studio project files`, if the option is not visible first click on `Show more options`. This will generate the visual studio solution file `demo_ik.sln`.
+
+
+
+## tutorial
+
+#### project setup
 Install Epic Game launcher from Unreal website and the unreal version 5.5, if you don't have it already. Then, follow this tutorial to install and set up visual studio for Unreal Engine: [here](https://dev.epicgames.com/documentation/en-us/unreal-engine/setting-up-visual-studio-development-environment-for-cplusplus-projects-in-unreal-engine), this is the recommended choice for compatibility, but feel free to use any other code editor if you prefer.
 
 once installed, launch the 5.5 version of Unreal from the Epic Games Launcher.
