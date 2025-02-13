@@ -67,7 +67,7 @@ bool AAPosableCharacter::doesBoneOrSocketNameExists(FName inputName)
 	return(
 		_boneNames.Contains(inputName)
 		or posableMeshComponent_reference->DoesSocketExist(inputName)
-		);
+	);
 }
 
 void AAPosableCharacter::setVisibility(bool visible)
@@ -264,7 +264,6 @@ void AAPosableCharacter::BeginPlay()
 void AAPosableCharacter::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	//_tick_test_applyWaveToSkeleton();
 	if(session1_isPlaying)
 		waving_tickAnimation();
 
