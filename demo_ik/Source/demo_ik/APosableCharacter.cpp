@@ -7,6 +7,8 @@ AAPosableCharacter::AAPosableCharacter()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+
+	// create the component instance to attach to the actor (this is required)
 	posableMeshComponent_reference = CreateDefaultSubobject<UPoseableMeshComponent>(TEXT("PoseableMesh"));
 
 	// attach your posable mesh component to the root (make it a child of the root component)
@@ -27,6 +29,44 @@ AAPosableCharacter::AAPosableCharacter()
 	{
 		UE_LOG(LogTemp, Warning, TEXT("manequin not found, check the path."));
 	}
+
+	// create the component instance to attach to the actor (this is required)
+	targetSphere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("targetSphere"));
+
+	// define the properties of the target sphere and attach it to the root.
+	targetSphere->SetMobility(EComponentMobility::Movable);
+	targetSphere->SetVisibility(true);
+	targetSphere->SetupAttachment(RootComponent);
+
+	// reference the sphere asset by path (be aware to check the path if this is not working).
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> sphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
+	if (sphereMesh.Succeeded())
+	{
+		// set the mesh with the source sphere asset.
+		targetSphereAsset = sphereMesh.Object;
+		targetSphere->SetStaticMesh(targetSphereAsset);
+		// set the scaling of the sphere.
+		targetSphere->SetWorldScale3D(FVector(targetSphereScaling, targetSphereScaling, targetSphereScaling));
+		
+		// reference the sphere material by path (be aware to check the path if this is not working).
+		static ConstructorHelpers::FObjectFinder<UMaterialInterface> sphereMaterial(TEXT("/Game/material/M_targetSphere"));
+		if (sphereMaterial.Succeeded())
+		{
+			// set the material with the source material asset.
+			targetSphereMaterial = UMaterialInstanceDynamic::Create(sphereMaterial.Object, this, FName("sphereTarget_dynamicMaterial"));
+			if (targetSphereMaterial)
+			{
+				targetSphere->SetMaterial(0, targetSphereMaterial);
+				// set the color of the material with the provided color.
+				targetSphereMaterial->SetVectorParameterValue(TEXT("Color"), targetSphereColor);
+			}
+		}
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("sphere not found, check the path."));
+	}
+
 }
 
 bool AAPosableCharacter::initializePosableMesh()
@@ -51,6 +91,23 @@ bool AAPosableCharacter::initializePosableMesh()
 void AAPosableCharacter::waving_playStop()
 {
 	session1_isPlaying = !session1_isPlaying;
+}
+
+void AAPosableCharacter::testSetTargetSphereRelativePosition()
+{
+	setTargetSphereRelativePosition(targetSphereTestRelativePosition);
+}
+
+void AAPosableCharacter::setTargetSphereRelativePosition(FVector newPosition)
+{
+	if (targetSphere)
+	{
+		targetSphere->SetRelativeLocation(newPosition);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("target sphere not found!"));
+	}
 }
 
 bool AAPosableCharacter::doesBoneOrSocketNameExists(FName inputName)

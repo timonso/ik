@@ -1,3 +1,11 @@
+## outline
+1) [demo project](#demo-project) instruction on how to use the provided code.
+2) [tutorial](#tutorial) explains how to set up the project and the posable character (mandatory for session 1).
+3) :new: [tools for your project](#tools-for-your-project) :new: some hints on debugging, including some code to visualize a target sphere for the IK system.
+4) :new: [troubleshooting](#troubleshooting) :new: some helpful suggestions.
+
+:new: the provided code now includes the basic setting to visualize a sphere and move it around the scene, to use this as target for your ik system :new:
+
 ## demo project
 #### what is this?
 this is a guide (+ the code) to set up a simple Unreal Engine environment to access and edit the kinematic properties of a rigged mesh character directly through c++ code. The guide and the code are specifically tested on Windows 11, but some part might be used also for Linux and Mac, specifically the Unreal part. 
@@ -303,3 +311,165 @@ In this last part of the tutorial we will animate the mannequin lower arm. We us
 FMath::Sin(x)
 ```
 We relate this function with the passing time, setting also the angle amplitude and the velocity of the movement. This process is pretty straightforward. Compare to the previous example, we would need to store the values of the transform of the starting pose, so that we can use it as zero-point of the oscillation. This is also performed in the `BeginPlay`. The rest of the code is exactly the same as before, but executed per-frame in the `Tick` function wrapped by the periodic `sin` function.
+
+
+## tools for your project
+#### debugging: print on console  :new:
+Whenever something is not working in your code and you don't know why, try to check if every part of your code do what is intended to do (this concept is related to definition of **unit tests**). There are many tutorial and resources online on how to define test and debug your code. The simplest way, like every programming language, is printing out values. Unreal Engine define is own logging system (you can find details [here](https://unrealcommunity.wiki/logging-lgpidy6i)). 
+Some example are already present in the provided code, to highlight warnings when values are not properly initialized.
+```cpp
+// initialization check to avoid crashes.
+if (!posableMeshComponent_reference)
+{
+	UE_LOG(LogTemp, Warning, TEXT("Posable mesh component not attached or registerd"));
+	return false;
+}
+```
+When we use the `Warning` keyword, the message will be highlighted in yellow in the editor output log. Note to open the output log click on `Window`&rarr;`Output Log`.
+![alt text](images/ikutils/ikutilis-outputlog.png "ikutils-outputlog")
+You can logging to print test (like in the previous code) or also to print code values, here there are some examples from the [unreal documentation](https://unrealcommunity.wiki/logging-lgpidy6i).
+```cpp
+//Logging an FString
+UE_LOG(LogTemp, Warning, TEXT("The Actor's name is %s"), *YourActor-&gt;GetName());
+// Logging a Bool
+UE_LOG(LogTemp, Warning, TEXT("The boolean value is %s"), ( bYourBool ? TEXT("true") : TEXT("false") ));
+// Logging an Integer
+UE_LOG(LogTemp, Warning, TEXT("The integer value is: %d"), YourInteger);
+// Logging a Float
+UE_LOG(LogTemp, Warning, TEXT("The float value is: %f"), YourFloat);
+// Logging an FVector
+UE_LOG(LogTemp, Warning, TEXT("The vector value is: %s"), *YourVector.
+// Logging with Multiple Specifiers
+UE_LOG(LogTemp, Warning, TEXT("Current values are: vector %s, float %f, and integer %d"), *YourVector.ToString(), YourFloat, YourInteger);
+```
+Use these in specific part of your code and check out the values are the one are intended to be. **be aware** that if you print in tick function the values will be printed every iteration and not disappear, so you would quickly end up with a long list of values &rarr; to avoid this problem try to condition the print or constraint it over certain situation (for example, if condition, or max time, max print, ...).
+#### debugging: print on screen
+Unreal allows also to print text on values directly on the screen. The principle is exactly the same aa the print on console, but the syntax is slightly different. Here an example with just text:
+```cpp
+if(GEngine)
+{
+	GEngine->AddOnScreenDebugMessage(-1, 15.0f, FColor::Yellow, TEXT("This is the pre-set text"));	
+	/* Breakdown of the inputs:
+	-1 = A unique key to prevent the same message from being added multiple times. Set it to -1 if the uniqueness doesn't matter to you
+	15.0f = How long to display the message, in seconds.
+	FColor::Yellow = The color in which it should get printed to the screen
+	*/
+}
+```
+As you can see in this case we also set the time the message is displayed on the screen and the color. If you want more details and how to add values check [this documentation](https://dev.epicgames.com/community/snippets/Vm9/unreal-engine-print-to-screen-in-c).
+
+#### debugging: breakpoints  :new:
+there is a better and cleaner way of checking the execution status of your code, and this is by using breakpoints. I will not go to much  into the details of this, but you can find many resources online. I will show you briefly how to set up a breakpoint in `visual studio`. A breakpoint is an execution-stopper, this allows you to examine and check the status of the code at that specific instant (correspondent to a line of code). Easily way to set up is by clicking on the left side of the visual studio editor, in correspondence with the line number you want the execution to stop.
+![alt text](images/ikutils/ikutilis-executionStopBreakpoint.png "ikutils-breakpoint")
+**note** that the breakpoints define on the code will always be active if you run the editor directly from the code: this means that **instead** of launching the editor through the `Epic games launcher` or directly by the Unreal Engine version, you **should run the code from visual studio**. To do so you should click the play button (be sure that Unreal is not already open).
+![alt text](images/ikutils/ikutilis-playFromVisualStudio.png "ikutils-playEditoFromCode")
+This will compile the code again and launch the editor. The editor works exactly in the same way as usual, but this time it will hit the breakpoints. If you want a larger overview on debugging with code check [this video tutorial](https://www.youtube.com/watch?v=MmJW4tc5nIo).
+
+#### visual debugging: :new:
+This kind of debugging are more complex to set up and case-specific. I will show you how to display a sphere to indicate the target position of your IK system (check also the provided code). The first thing we need to do is to define the variable of our **target sphere**, in our `APosableCharacter.h`.
+```cpp
+public:
+	/**
+	* target sphere asset.
+	**/
+	UPROPERTY(EditAnywhere, Category = "target")
+	UStaticMesh* targetSphereAsset;
+	/**
+	* scaling factor for the target sphere.
+	**/
+	UPROPERTY(EditAnywhere, Category = "target")
+	float targetSphereScaling = 0.1f;
+	/**
+	* color of the target sphere.	
+	**/
+	UPROPERTY(EditAnywhere, Category = "target")
+	FColor targetSphereColor = FColor::Red;
+```
+Similarly to what we did with the skeletal mesh of the mannequin, here we define the source asset `targetSphereAsset` that will be the sphere mesh we use, then we add a `float` value to define the scale of the sphere (Unreal default sphere is typically pretty big), optionally we can define the color ( we will see later on how to set the color to the sphere). Still in the header file we will add the `protected` members:
+```cpp
+protected:
+	/**
+	* target sphere for IK.
+	**/
+	UStaticMeshComponent* targetSphere;
+	/**
+	* target sphere material.
+	**/
+	UMaterialInstanceDynamic* targetSphereMaterial;
+```
+The first one is our mesh component (the one we create from the source mesh asset) and that we attach to our actor (similarly to what we did with the posable mesh component). The second one is our material instance, we need a material here because we want to color the sphere.
+Next we need to create a compatible material, a material where we can set the color by code. To do so open the editor, and in the `Content Browser` create a folder called `material` inside the `Content` folder, as in the figure:
+![alt text](images/ikutils/ikutilis-createMaterialfolder.png "ikutils-playEditoFromCode")
+you can create a folder by pressing `+ Add` on top, or by right clicking inside the desired path. After that, go inside the newly create folder and create a material, again, by clicking `+ Add` or right click `New Material`, call this material `M_targetSphere`. The material will look like this:
+![alt text](images/ikutils/ikutilis-newMaterial.png "ikutils-newMaterial")
+Now we need to create our color parameter and set it as `Base color` of our material. To do so, right click inside the material graph and type `vector parameter` like in the picture.
+![alt text](images/ikutils/ikutilis-newVectorParameter.png "ikutils-createVectorParameter")
+Call this vector parameter `Color` (**note** the name is important because we will access this parameter by name), you can also edit the name with `F2`.
+![alt text](images/ikutils/ikutilis-newVectorParameterName.png "ikutils-createVectorParameterName")
+Finally clikc and drag the vector parameter color pin, into the material `Base color` pin, like in the figure:
+![alt text](images/ikutils/ikutilis-newVectorParameterLink.png "ikutils-createVectorParameterPin")
+Save and close. Keep track of the folder path and the name of your material, we will need this to use it in `c++` code. In fact now we move back to the code, we open our `APosableCharacter.cpp` and we edit the constructor to initialize all the values. So that we add this lines of code inside `AAPosableCharacter::AAPosableCharacter()`:
+```cpp
+// reference the sphere asset by path (be aware to check the path if this is not working).
+static ConstructorHelpers::FObjectFinder<UStaticMesh> sphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
+if (sphereMesh.Succeeded())
+{
+	// set the mesh with the source sphere asset.
+	targetSphereAsset = sphereMesh.Object;
+	targetSphere->SetStaticMesh(targetSphereAsset);
+	// set the scaling of the sphere.
+	targetSphere->SetWorldScale3D(FVector(targetSphereScaling, targetSphereScaling, targetSphereScaling));
+	
+	// reference the sphere material by path (be aware to check the path if this is not working).
+	static ConstructorHelpers::FObjectFinder<UMaterialInterface> sphereMaterial(TEXT("/Game/material/M_targetSphere"));
+	if (sphereMaterial.Succeeded())
+	{
+		// set the material with the source material asset.
+		targetSphereMaterial = UMaterialInstanceDynamic::Create(sphereMaterial.Object, this, FName("sphereTarget_dynamicMaterial"));
+		if (targetSphereMaterial)
+		{
+			targetSphere->SetMaterial(0, targetSphereMaterial);
+			// set the color of the material with the provided color.
+			targetSphereMaterial->SetVectorParameterValue(TEXT("Color"), targetSphereColor);
+		}
+	}
+}
+else
+{
+	UE_LOG(LogTemp, Warning, TEXT("sphere not found, check the path."));
+}
+```
+This initialize the components, recover the assets (through path) and generate all the components. With this code we will be able to see the red sphere in the scene. The last thing we will do is to define a function to modify the position of the sphere in the space. First we design the function in the header file, which get the new position as input and apply it to the sphere. Note that the position will be relative to the actor itself (and not global).
+```cpp
+public:	
+	/**
+	* function to change the target sphere position.
+	* @param newPosition: the new position of the target sphere.
+	**/
+	void setTargetSphereRelativePosition(FVector newPosition);
+```
+Then in the `.cpp` file we simply implement the function:
+```cpp
+void AAPosableCharacter::setTargetSphereRelativePosition(FVector newPosition)
+{
+	if (targetSphere)
+	{
+		targetSphere->SetRelativeLocation(newPosition);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("target sphere not found!"));
+	}
+}
+```
+You can use this function inside your code to highlight the target position of your IK system. So you will always have the visible sphere.
+
+That is all, in the code you will find also a test function that allows you to set the position of the sphere and test it through the editor, so you can test if everything is working.
+![alt text](images/ikutils/ikutilis-testExample.png "ikutils-createVectorParameterPin")
+First set the values and then click the button with `testSetTargetSphereRelativePosition` to set the position of the sphere. Now is up to you to define the code to move the character to reach the sphere.
+
+## troubleshooting
+#### scale down resolution for lower-end machine: :new:
+Some computer might have hard time running Unreal smoothly. So if you want to increase the performances and reduce the load of the editor I suggest you to reduce the scalability setting of the editor. 
+![alt text](images/trubles/trubels-scalability.png "trubles-scalability")
+So click on `Settings` on the top right corner then `Engine Scalability Settings`&rarr;`Low` this will set all the effects to low quality. You can do similarly with `Material Quality Level` but this is typically low by default. 
