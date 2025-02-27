@@ -15,7 +15,7 @@ UIK_Fabrik::UIK_Fabrik()
 }
 
 // FABRIK solver
-void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<FVector> &boneVectors, float threshold, int iterationCount)
+void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<BoneVector> &boneVectors, float threshold, int iterationCount)
 {
 	// check if the bone vectors are empty
 	if (boneVectors.Num() == 0)
@@ -24,20 +24,20 @@ void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<FVector> &bon
 		return;
 	}
 
-	FVector startBone = boneVectors[0];
+	FVector startBone = boneVectors[0].position;
 
 	// iteratively approximate a solution
 	for (int i = 0; i < iterationCount; i++)
 	{
 		// check if the last bone is close enough to the target position
-		FVector endBone = boneVectors.last();
+		FVector endBone = boneVectors.Last().position;
 		if (FVector::Distance(endBone, targetPosition) <= threshold)
 		{
 			break;
 		}
 
 		// backward pass
-		boneVectors.last() = targetPosition;
+		// boneVectors.Last().position = targetPosition;
 	}
 }
 
