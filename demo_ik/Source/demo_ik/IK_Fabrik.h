@@ -25,6 +25,14 @@ public:
 	AAPosableCharacter* PosableCharacter;
 	UPoseableMeshComponent* PosableMesh;
 
+	struct BoneVector
+	{
+		FString name;
+		FVector position;
+		float magnitude;
+	};
+
+
 protected:
 	// Called when the game starts
 	virtual void BeginPlay() override;
@@ -34,5 +42,5 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
-	virtual void Solve(const FVector &targetPosition, const TArray<FVector> &boneVectors, float threshold = 0.01, int iterationCount = 5);
+	virtual void Solve(const FVector &targetPosition, const TArray<BoneVector> &boneVectors, float threshold = 0.01, int iterationCount = 5);
 };

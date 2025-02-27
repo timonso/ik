@@ -14,9 +14,31 @@ UIK_Fabrik::UIK_Fabrik()
 	PosableMesh = PosableCharacter->posableMeshComponent_reference;
 }
 
+// FABRIK solver
 void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<FVector> &boneVectors, float threshold, int iterationCount)
 {
+	// check if the bone vectors are empty
+	if (boneVectors.Num() == 0)
+	{
+		UE_LOG(LogTemp, Warning, TEXT("no bone vectors found for FABRIK"));
+		return;
+	}
 
+	FVector startBone = boneVectors[0];
+
+	// iteratively approximate a solution
+	for (int i = 0; i < iterationCount; i++)
+	{
+		// check if the last bone is close enough to the target position
+		FVector endBone = boneVectors.last();
+		if (FVector::Distance(endBone, targetPosition) <= threshold)
+		{
+			break;
+		}
+
+		// backward pass
+		boneVectors.last() = targetPosition;
+	}
 }
 
 // Called when the game starts
@@ -30,15 +52,26 @@ void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
-	TArray<FVector> boneVectors = {
-		PosableMesh->GetBoneLocationByName(FName("upperarm_l"), EBoneSpaces::WorldSpace),
-		PosableMesh->GetBoneLocationByName(FName("lowerarm_l"), EBoneSpaces::WorldSpace),
-		PosableMesh->GetBoneLocationByName(FName("hand_l"), EBoneSpaces::WorldSpace)
-	};
+	TArray<FString> boneNames = {
+			TEXT("upperarm_l"),
+			TEXT("lowerarm_l"),
+			TEXT("hand_l")};
+
+	TArray<BoneVector> boneVectors = {};
+
+	for (int i = 0; i < boneNames.Num(); i++)
+	{
+		BoneVector boneVector = BoneVector();
+		boneVector.name = boneNames[i];
+		boneVector.position = PosableMesh->GetBoneLocationByName(FName(boneNames[i]), EBoneSpaces::WorldSpace);
+		boneVector.magnitude = 0.0f;
+		boneVectors.Add(boneVector);
+	}
 
 	Solve(targetActor_reference->GetActorLocation(), boneVectors);
 
-	PosableMesh->SetBoneLocationByName(FName("upperarm_l"), EBoneSpaces::WorldSpace),
-	PosableMesh->SetBoneLocationByName(FName("lowerarm_l"), EBoneSpaces::WorldSpace),
-	PosableMesh->SetBoneLocationByName(FName("hand_l"), EBoneSpaces::WorldSpace)
+	for (int i = 0; i < boneVectors.Num(); i++)
+	{
+		PosableMesh->SetBoneLocationByName(FName(boneVectors[i].name), boneVectors[i].position, EBoneSpaces::WorldSpace);
+	}
 }
