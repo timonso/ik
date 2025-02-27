@@ -35,6 +35,10 @@ public:
 	**/
 	UPROPERTY(EditAnywhere, Category = "waving animation")
 	float waving_animationSpeed = 5.0f;
+
+	UPROPERTY(EditAnywhere, Category = "hand-to-heart animation")
+	float handToHeart_animationSpeed = 30.0f;
+
 	/**
 	* the waving animation amplitude.
 	**/
@@ -80,6 +84,8 @@ protected:
 	* boolean to define if the waving animation is playing.
 	**/
 	bool session1_isPlaying = false;
+	
+	bool handToHeart_isPlaying = true;
 
 public:	
 	/**
@@ -136,10 +142,14 @@ protected:
 	* waving animation initialization (used ib BeginPlay).
 	**/
 	void waving_initializeStartingPose();
+
+	void handToHeart_initializeStartingPose();
 	/**
 	* waving animation tick (used in Tick).
 	**/
 	void waving_tickAnimation();
+
+	void handToHeart_tickAnimation();
 
 
 
