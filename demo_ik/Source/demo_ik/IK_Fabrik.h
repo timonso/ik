@@ -29,7 +29,7 @@ public:
 	{
 		FString name;
 		FVector position;
-		float magnitude;
+		FQuat rotation;
 	};
 
 
@@ -42,5 +42,5 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
-	virtual void Solve(const FVector &targetPosition, TArray<BoneVector> &boneVectors, float threshold = 0.001, int iterationCount = 100);
+	virtual void Solve(UPoseableMeshComponent* skeleton, const FVector &targetPosition, TArray<FString> &boneVectors, float threshold = 0.01, int iterationCount = 10);
 };

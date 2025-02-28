@@ -1,6 +1,8 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "IK_Fabrik.h"
+#include "Math/UnrealMathVectorCommon.h"
+
 
 // Sets default values for this component's properties
 UIK_Fabrik::UIK_Fabrik()
@@ -14,44 +16,32 @@ UIK_Fabrik::UIK_Fabrik()
 }
 
 // FABRIK solver
-void UIK_Fabrik::Solve(const FVector &targetPosition, TArray<BoneVector> &boneVectors, float threshold, int iterationCount)
+void UIK_Fabrik::Solve(UPoseableMeshComponent* skeleton, const FVector& targetPosition, TArray<FString>& boneNames, float threshold, int iterationCount)
 {
 	// check if the bone vectors are empty
-	if (boneVectors.Num() == 0)
+	if (boneNames.Num() == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("no bone vectors found for FABRIK"));
 		return;
 	}
 
-	FVector startBone = boneVectors[0].position;
 
 	// iteratively approximate a solution
 	for (int i = 0; i < iterationCount; i++)
 	{
-		// check if the last bone is close enough to the target position
-		FVector endBone = boneVectors.Last().position;
-		if (FVector::Distance(endBone, targetPosition) <= threshold)
-		{
-			break;
+		for (int b = 0; b < boneNames.Num(); b++) {
+			FVector endBonePos = skeleton->GetBoneLocation(FName(boneNames[0],  EBoneSpaces::WorldSpace));
+			if (FVector::Dist(endBonePos, targetPosition) < threshold) {
+				return;
+			}
+			FName currentBoneName = FName(boneNames[b]);
+			FVector currentBonePos = skeleton->GetBoneLocation(currentBoneName, EBoneSpaces::WorldSpace);
+			FQuat currentBoneRot = skeleton->GetBoneQuaternion(currentBoneName, EBoneSpaces::WorldSpace);
+			FVector targetDirection = (targetPosition - currentBonePos);
+			FVector endBoneDirection = (endBonePos - currentBonePos);
+			FQuat newBoneRot = FQuat::FindBetweenVectors(endBoneDirection, targetDirection) * currentBoneRot;
+			skeleton->SetBoneRotationByName(currentBoneName, newBoneRot.Rotator(), EBoneSpaces::WorldSpace);
 		}
-
-		// backward pass
-		 boneVectors[0].position = targetPosition;
-		 for (int b = boneVectors.Num() - 2; b >= 0; b--)
-		 {
-			 FVector Direction = (boneVectors[b].position - boneVectors[b + 1].position).GetSafeNormal();
-			 float BoneLength = FVector::Distance(boneVectors[b].position, boneVectors[b + 1].position);
-			 boneVectors[b].position = boneVectors[b + 1].position + Direction * BoneLength;
-		 }
-
-		 // forward pass
-		 boneVectors[0].position = startBone;
-		 for (int f = 1; f < boneVectors.Num(); f++)
-		 {
-			 FVector Direction = (boneVectors[f].position - boneVectors[f - 1].position).GetSafeNormal();
-			 float BoneLength = FVector::Distance(boneVectors[f].position, boneVectors[f - 1].position);
-			 boneVectors[f].position = boneVectors[f - 1].position + Direction * BoneLength;
-		 }
 
 	}
 }
@@ -70,14 +60,15 @@ void UIK_Fabrik::BeginPlay()
 }
 
 // Called every frame
-void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction *ThisTickFunction)
+void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
 	TArray<FString> boneNames = {
-			TEXT("upperarm_l"),
+			TEXT("hand_l"),
 			TEXT("lowerarm_l"),
-			TEXT("hand_l")};
+			TEXT("upperarm_l"),
+	};
 
 	TArray<BoneVector> boneVectors = {};
 
@@ -85,15 +76,10 @@ void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 	{
 		BoneVector boneVector = BoneVector();
 		boneVector.name = boneNames[i];
-		boneVector.position = PosableMesh->GetBoneLocationByName(FName(*boneNames[i]), EBoneSpaces::WorldSpace);
-		boneVector.magnitude = 0.0f;
+		boneVector.position = PosableMesh->GetBoneLocation(FName(boneNames[i]), EBoneSpaces::WorldSpace);
+		boneVector.rotation = PosableMesh->GetBoneQuaternion(FName(boneNames[i]), EBoneSpaces::WorldSpace);
 		boneVectors.Add(boneVector);
 	}
 
-	Solve(targetActor_reference->GetActorLocation(), boneVectors);
-
-	for (int i = 0; i < boneVectors.Num(); i++)
-	{
-		PosableMesh->SetBoneLocationByName(FName(*boneVectors[i].name), boneVectors[i].position, EBoneSpaces::WorldSpace);
-	}
+	Solve(PosableMesh, targetActor_reference->GetActorLocation(), boneNames);
 }
