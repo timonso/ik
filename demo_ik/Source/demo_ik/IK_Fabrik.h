@@ -42,5 +42,5 @@ public:
 	virtual void TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction) override;
 
 public:
-	virtual void Solve(const FVector &targetPosition, TArray<BoneVector> &boneVectors, float threshold = 0.001, int iterationCount = 10);
+	virtual void Solve(const FVector &targetPosition, TArray<BoneVector> &boneVectors, float threshold = 0.001, int iterationCount = 100);
 };

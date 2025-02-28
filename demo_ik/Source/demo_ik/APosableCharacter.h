@@ -39,6 +39,11 @@ public:
 	UPROPERTY(EditAnywhere, Category = "hand-to-heart animation")
 	float handToHeart_animationSpeed = 30.0f;
 
+	bool session1_isPlaying = false;
+
+	UPROPERTY(EditAnywhere, Category = "hand-to-heart animation")
+	bool handToHeart_isPlaying = false;
+
 	/**
 	* the waving animation amplitude.
 	**/
@@ -80,12 +85,7 @@ protected:
 	* the set of initial bone rotations for the waving animation, after setting the starting pose.
 	**/
 	TArray<FRotator> waving_initialBoneRotations;
-	/**
-	* boolean to define if the waving animation is playing.
-	**/
-	bool session1_isPlaying = false;
-	
-	bool handToHeart_isPlaying = true;
+
 
 public:	
 	/**

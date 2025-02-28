@@ -36,7 +36,7 @@ void UIK_Fabrik::Solve(const FVector &targetPosition, TArray<BoneVector> &boneVe
 		}
 
 		// backward pass
-		 boneVectors.Last().position = targetPosition;
+		 boneVectors[0].position = targetPosition;
 		 for (int b = boneVectors.Num() - 2; b >= 0; b--)
 		 {
 			 FVector Direction = (boneVectors[b].position - boneVectors[b + 1].position).GetSafeNormal();
@@ -85,7 +85,7 @@ void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 	{
 		BoneVector boneVector = BoneVector();
 		boneVector.name = boneNames[i];
-		boneVector.position = PosableMesh->GetBoneLocationByName(FName(boneNames[i]), EBoneSpaces::WorldSpace);
+		boneVector.position = PosableMesh->GetBoneLocationByName(FName(*boneNames[i]), EBoneSpaces::WorldSpace);
 		boneVector.magnitude = 0.0f;
 		boneVectors.Add(boneVector);
 	}
@@ -94,6 +94,6 @@ void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 
 	for (int i = 0; i < boneVectors.Num(); i++)
 	{
-		PosableMesh->SetBoneLocationByName(FName(boneVectors[i].name), boneVectors[i].position, EBoneSpaces::WorldSpace);
+		PosableMesh->SetBoneLocationByName(FName(*boneVectors[i].name), boneVectors[i].position, EBoneSpaces::WorldSpace);
 	}
 }
