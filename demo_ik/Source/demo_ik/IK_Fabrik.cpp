@@ -11,11 +11,10 @@ UIK_Fabrik::UIK_Fabrik()
 
 	targetActor_reference = CreateDefaultSubobject<AActor>(TEXT("Actor"));
 	PosableCharacter = Cast<AAPosableCharacter>(GetOwner());
-	PosableMesh = PosableCharacter->posableMeshComponent_reference;
 }
 
 // FABRIK solver
-void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<BoneVector> &boneVectors, float threshold, int iterationCount)
+void UIK_Fabrik::Solve(const FVector &targetPosition, TArray<BoneVector> &boneVectors, float threshold, int iterationCount)
 {
 	// check if the bone vectors are empty
 	if (boneVectors.Num() == 0)
@@ -37,7 +36,23 @@ void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<BoneVector> &
 		}
 
 		// backward pass
-		// boneVectors.Last().position = targetPosition;
+		 boneVectors.Last().position = targetPosition;
+		 for (int b = boneVectors.Num() - 2; b >= 0; b--)
+		 {
+			 FVector Direction = (boneVectors[b].position - boneVectors[b + 1].position).GetSafeNormal();
+			 float BoneLength = FVector::Distance(boneVectors[b].position, boneVectors[b + 1].position);
+			 boneVectors[b].position = boneVectors[b + 1].position + Direction * BoneLength;
+		 }
+
+		 // forward pass
+		 boneVectors[0].position = startBone;
+		 for (int f = 1; f < boneVectors.Num(); f++)
+		 {
+			 FVector Direction = (boneVectors[f].position - boneVectors[f - 1].position).GetSafeNormal();
+			 float BoneLength = FVector::Distance(boneVectors[f].position, boneVectors[f - 1].position);
+			 boneVectors[f].position = boneVectors[f - 1].position + Direction * BoneLength;
+		 }
+
 	}
 }
 
@@ -45,6 +60,13 @@ void UIK_Fabrik::Solve(const FVector &targetPosition, const TArray<BoneVector> &
 void UIK_Fabrik::BeginPlay()
 {
 	Super::BeginPlay();
+
+	if (PosableCharacter) {
+		PosableMesh = PosableCharacter->posableMeshComponent_reference;
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("Fabrik: Poseable character not found"));
+	}
 }
 
 // Called every frame

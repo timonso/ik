@@ -23,7 +23,6 @@ AAPosableCharacter::AAPosableCharacter()
 	{
 		// set default mesh with the mannequin access and apply it to the posable mesh.
 		default_skeletalMesh_reference = MannequinMesh.Object;
-		posableMeshComponent_reference->SetSkinnedAssetAndUpdate(default_skeletalMesh_reference);
 	}
 	else
 	{
@@ -380,7 +379,7 @@ void AAPosableCharacter::handToHeart_tickAnimation()
 				EBoneSpaces::ComponentSpace);
 		int currentBoneIndex = posableMeshComponent_reference->GetBoneIndex(lowerarmBoneName);
 		FRotator storedRotation = waving_initialBoneRotations[currentBoneIndex];
-		// bone_componentSpaceTransform.SetRotation(storedRotation.Quaternion());
+		bone_componentSpaceTransform.SetRotation(storedRotation.Quaternion());
 
 		FTransform parent_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
 				posableMeshComponent_reference->GetParentBone(lowerarmBoneName),
@@ -394,9 +393,11 @@ void AAPosableCharacter::handToHeart_tickAnimation()
 		
 		// apply the offset to the initial rotation
 		FRotator relativeBoneRotation = bone_relativeTransform.Rotator() + rotationOffset;
-		relativeBoneRotation.Pitch = FMath::Clamp(rotationOffset.Pitch, -39.999999f, bone_relativeTransform.Rotator().Pitch);
 		relativeBoneRotation.Yaw = FMath::Clamp(rotationOffset.Yaw, bone_relativeTransform.Rotator().Yaw, 128.978820f);
 		relativeBoneRotation.Roll = FMath::Clamp(rotationOffset.Roll, -109.999997f, bone_relativeTransform.Rotator().Roll);
+
+		//relativeBoneRotation.Yaw = FMath::Lerp(bone_relativeTransform.Rotator().Yaw, 128.978820f, angleOffset);
+		//relativeBoneRotation.Roll = FMath::Lerp(bone_relativeTransform.Rotator().Roll, -109.999997f, angleOffset);
 		
 		bone_relativeTransform.SetRotation(relativeBoneRotation.Quaternion());
 
@@ -417,6 +418,12 @@ void AAPosableCharacter::BeginPlay()
 {
 	Super::BeginPlay();
 	initializePosableMesh();
+	if (default_skeletalMesh_reference) {
+		posableMeshComponent_reference->SetSkinnedAssetAndUpdate(default_skeletalMesh_reference);
+	}
+	else {
+		UE_LOG(LogTemp, Warning, TEXT("could not set default sk mesh ref"));
+	}
 	// waving_initializeStartingPose();
 	handToHeart_initializeStartingPose();
 	waving_initialBoneRotations = TArray<FRotator>();
