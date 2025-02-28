@@ -37,7 +37,7 @@ public:
 	float waving_animationSpeed = 5.0f;
 
 	UPROPERTY(EditAnywhere, Category = "hand-to-heart animation")
-	float handToHeart_animationSpeed = 30.0f;
+	float handToHeart_animationSpeed = 1.0f;
 
 	bool session1_isPlaying = false;
 
@@ -50,41 +50,12 @@ public:
 	UPROPERTY(EditAnywhere, Category = "waving animation")
 	float waving_amplitude = 30.0f;
 
-	/**
-	* target sphere asset.
-	**/
-	UPROPERTY(EditAnywhere, Category = "target")
-	UStaticMesh* targetSphereAsset;
-	/**
-	* scaling factor for the target sphere.
-	**/
-	UPROPERTY(EditAnywhere, Category = "target")
-	float targetSphereScaling = 0.1f;
-	/**
-	* color of the target sphere.	
-	**/
-	UPROPERTY(EditAnywhere, Category = "target")
-	FColor targetSphereColor = FColor::Red;
-	/**
-	* test position for the target sphere.
-	**/
-	UPROPERTY(EditAnywhere, Category = "target|test")
-	FVector targetSphereTestRelativePosition = FVector(0, 0, 0);
-
 
 protected:
 	/**
-	* target sphere for IK.
-	**/
-	UStaticMeshComponent* targetSphere;
-	/**
-	* target sphere material.
-	**/
-	UMaterialInstanceDynamic* targetSphereMaterial;
-	/**
 	* the set of initial bone rotations for the waving animation, after setting the starting pose.
 	**/
-	TArray<FRotator> waving_initialBoneRotations;
+	TArray<FRotator> initialBoneRotations;
 
 
 public:	
@@ -105,18 +76,6 @@ public:
 	**/
 	UFUNCTION(BlueprintCallable, CallInEditor, Category = "waving animation")
 	void waving_playStop();
-
-	/**
-	* function to change the target sphere position.
-	**/
-	UFUNCTION(BlueprintCallable, CallInEditor, Category = "target|test")
-	void testSetTargetSphereRelativePosition();
-
-	/**
-	* function to change the target sphere position.
-	* @param newPosition: the new position of the target sphere.
-	**/
-	void setTargetSphereRelativePosition(FVector newPosition);
 
 
 	/**
@@ -143,7 +102,6 @@ protected:
 	**/
 	void waving_initializeStartingPose();
 
-	void handToHeart_initializeStartingPose();
 	/**
 	* waving animation tick (used in Tick).
 	**/

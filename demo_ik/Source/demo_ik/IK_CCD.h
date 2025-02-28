@@ -7,30 +7,23 @@
 #include "APosableCharacter.h"
 #include "Components/PoseableMeshComponent.h" 
 
-#include "IK_Fabrik.generated.h"
+#include "IK_CCD.generated.h"
 
 
 UCLASS( ClassGroup=(Custom), meta=(BlueprintSpawnableComponent) )
-class DEMO_IK_API UIK_Fabrik : public UActorComponent
+class DEMO_IK_API UIK_CCD : public UActorComponent
 {
 	GENERATED_BODY()
 
 public:	
 	// Sets default values for this component's properties
-	UIK_Fabrik();
+	UIK_CCD();
 
 	UPROPERTY(EditAnywhere)
 	class AActor* targetActor_reference;
 
 	AAPosableCharacter* PosableCharacter;
 	UPoseableMeshComponent* PosableMesh;
-
-	struct BoneVector
-	{
-		FString name;
-		FVector position;
-		FQuat rotation;
-	};
 
 
 protected:

@@ -1,10 +1,10 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "IK_Fabrik.h"
+#include "IK_CCD.h"
 
 
 // Sets default values for this component's properties
-UIK_Fabrik::UIK_Fabrik()
+UIK_CCD::UIK_CCD()
 {
 	PrimaryComponentTick.bCanEverTick = true;
 
@@ -12,10 +12,9 @@ UIK_Fabrik::UIK_Fabrik()
 	PosableCharacter = Cast<AAPosableCharacter>(GetOwner());
 }
 
-// FABRIK solver
-void UIK_Fabrik::Solve(UPoseableMeshComponent* skeleton, const FVector& targetPosition, TArray<FString>& boneNames, float threshold, int iterationCount)
+void UIK_CCD::Solve(UPoseableMeshComponent* skeleton, const FVector& targetPosition, TArray<FString>& boneNames, float threshold, int iterationCount)
 {
-	// check if the bone vectors are empty
+	// check if there are bones to rotate
 	if (boneNames.Num() == 0)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("no bone vectors found for CCD"));
@@ -49,7 +48,7 @@ void UIK_Fabrik::Solve(UPoseableMeshComponent* skeleton, const FVector& targetPo
 }
 
 // Called when the game starts
-void UIK_Fabrik::BeginPlay()
+void UIK_CCD::BeginPlay()
 {
 	Super::BeginPlay();
 
@@ -62,7 +61,7 @@ void UIK_Fabrik::BeginPlay()
 }
 
 // Called every frame
-void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
+void UIK_CCD::TickComponent(float DeltaTime, ELevelTick TickType, FActorComponentTickFunction* ThisTickFunction)
 {
 	Super::TickComponent(DeltaTime, TickType, ThisTickFunction);
 
@@ -71,17 +70,6 @@ void UIK_Fabrik::TickComponent(float DeltaTime, ELevelTick TickType, FActorCompo
 			TEXT("lowerarm_l"),
 			TEXT("upperarm_l"),
 	};
-
-	TArray<BoneVector> boneVectors = {};
-
-	for (int i = 0; i < boneNames.Num(); i++)
-	{
-		BoneVector boneVector = BoneVector();
-		boneVector.name = boneNames[i];
-		boneVector.position = PosableMesh->GetBoneLocation(FName(boneNames[i]), EBoneSpaces::WorldSpace);
-		boneVector.rotation = PosableMesh->GetBoneQuaternion(FName(boneNames[i]), EBoneSpaces::WorldSpace);
-		boneVectors.Add(boneVector);
-	}
 
 	Solve(PosableMesh, targetActor_reference->GetActorLocation(), boneNames);
 }

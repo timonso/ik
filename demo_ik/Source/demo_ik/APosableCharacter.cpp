@@ -29,42 +29,6 @@ AAPosableCharacter::AAPosableCharacter()
 		UE_LOG(LogTemp, Warning, TEXT("manequin not found, check the path."));
 	}
 
-	// create the component instance to attach to the actor (this is required)
-	targetSphere = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("targetSphere"));
-
-	// define the properties of the target sphere and attach it to the root.
-	targetSphere->SetMobility(EComponentMobility::Movable);
-	targetSphere->SetVisibility(true);
-	targetSphere->SetupAttachment(RootComponent);
-
-	// reference the sphere asset by path (be aware to check the path if this is not working).
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> sphereMesh(TEXT("/Engine/BasicShapes/Sphere"));
-	if (sphereMesh.Succeeded())
-	{
-		// set the mesh with the source sphere asset.
-		targetSphereAsset = sphereMesh.Object;
-		targetSphere->SetStaticMesh(targetSphereAsset);
-		// set the scaling of the sphere.
-		targetSphere->SetWorldScale3D(FVector(targetSphereScaling, targetSphereScaling, targetSphereScaling));
-
-		// reference the sphere material by path (be aware to check the path if this is not working).
-		static ConstructorHelpers::FObjectFinder<UMaterialInterface> sphereMaterial(TEXT("/Game/material/M_targetSphere"));
-		if (sphereMaterial.Succeeded())
-		{
-			// set the material with the source material asset.
-			targetSphereMaterial = UMaterialInstanceDynamic::Create(sphereMaterial.Object, this, FName("sphereTarget_dynamicMaterial"));
-			if (targetSphereMaterial)
-			{
-				targetSphere->SetMaterial(0, targetSphereMaterial);
-				// set the color of the material with the provided color.
-				targetSphereMaterial->SetVectorParameterValue(TEXT("Color"), targetSphereColor);
-			}
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("sphere not found, check the path."));
-	}
 }
 
 bool AAPosableCharacter::initializePosableMesh()
@@ -89,23 +53,6 @@ bool AAPosableCharacter::initializePosableMesh()
 void AAPosableCharacter::waving_playStop()
 {
 	session1_isPlaying = !session1_isPlaying;
-}
-
-void AAPosableCharacter::testSetTargetSphereRelativePosition()
-{
-	setTargetSphereRelativePosition(targetSphereTestRelativePosition);
-}
-
-void AAPosableCharacter::setTargetSphereRelativePosition(FVector newPosition)
-{
-	if (targetSphere)
-	{
-		targetSphere->SetRelativeLocation(newPosition);
-	}
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("target sphere not found!"));
-	}
 }
 
 bool AAPosableCharacter::doesBoneOrSocketNameExists(FName inputName)
@@ -207,98 +154,6 @@ void AAPosableCharacter::waving_initializeStartingPose()
 	}
 }
 
-void AAPosableCharacter::handToHeart_initializeStartingPose()
-{
-	// initialization check to avoid crashes.
-	if (!posableMeshComponent_reference)
-	{
-		UE_LOG(LogTemp, Warning, TEXT("Posable mesh component not attached or registerd"));
-		return;
-	}
-
-	// get time (for the periodic function)
-	const float Time = GetWorld()->GetTimeSeconds();
-
-	// we declare the bones we want to edit.
-	FName upperArmBoneName = FName("upperarm_r");
-	FName lowerArmBoneName = FName("lowerarm_r");
-
-	// upperarm
-	if (doesBoneOrSocketNameExists(upperArmBoneName))
-	{
-
-		// (2) get the bone transform in component space.
-		FTransform bone_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
-				upperArmBoneName,
-				EBoneSpaces::ComponentSpace);
-
-		// (3) get the bone's parent transform in component space.
-		FTransform parent_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
-				posableMeshComponent_reference->GetParentBone(upperArmBoneName),
-				EBoneSpaces::ComponentSpace);
-
-		// (4) extract the bone transform relative to the parent reference system (using FTransform built in function).
-		FTransform bone_relativeTransform = bone_componentSpaceTransform.GetRelativeTransform(parent_componentSpaceTransform);
-
-		// (5) define the relative rotation we want to set.
-		FRotator relativeBoneRotation = FRotator(-11.350484, 77.239075, -45.080829);
-		//(Pitch = 21.435965, Yaw = 21.709806, Roll = -92.235083)
-
-		// (6) set the rotation in the relative transform. (note that transform use quaternions internally, so we need to use the built in function to extract the quaternion from the Rotator).
-		bone_relativeTransform.SetRotation(relativeBoneRotation.Quaternion());
-
-		// (7) change back from relative space to component space.
-		FTransform newBoneTransform_world = bone_relativeTransform * parent_componentSpaceTransform;
-
-		// (8) finally we set the rotation, in component space, by name.
-		posableMeshComponent_reference->SetBoneRotationByName(
-				upperArmBoneName,
-				newBoneTransform_world.Rotator(),
-				EBoneSpaces::ComponentSpace);
-	}
-
-	if (doesBoneOrSocketNameExists(lowerArmBoneName))
-	{
-
-		// (2) get the bone transform in component space.
-		FTransform bone_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
-				lowerArmBoneName,
-				EBoneSpaces::ComponentSpace);
-
-		// (3) get the bone's parent transform in component space.
-		FTransform parent_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
-				posableMeshComponent_reference->GetParentBone(lowerArmBoneName),
-				EBoneSpaces::ComponentSpace);
-
-		// (4) extract the bone transform relative to the parent reference system (using FTransform built in function).
-		FTransform bone_relativeTransform = bone_componentSpaceTransform.GetRelativeTransform(parent_componentSpaceTransform);
-
-		// (5) define the relative rotation we want to set.
-		FRotator relativeBoneRotation = FRotator(-39.999999, 0.0f, 0.0f);
-		// (Pitch=-39.999999,Yaw=128.978820,Roll=-109.999997)
-
-		// (6) set the rotation in the relative transform. (note that transform use quaternions internally, so we need to use the built in function to extract the quaternion from the Rotator).
-		bone_relativeTransform.SetRotation(relativeBoneRotation.Quaternion());
-
-		// (7) change back from relative space to component space.
-		FTransform newBoneTransform_world = bone_relativeTransform * parent_componentSpaceTransform;
-
-		// (8) finally we set the rotation, in component space, by name.
-		posableMeshComponent_reference->SetBoneRotationByName(
-				lowerArmBoneName,
-				newBoneTransform_world.Rotator(),
-				EBoneSpaces::ComponentSpace);
-	}
-
-	else
-	{
-		UE_LOG(LogTemp, Warning, TEXT("bone: %s not found!"), *upperArmBoneName.ToString());
-	}
-
-	// Update transforms to ensure the changes are applied.
-	posableMeshComponent_reference->RefreshBoneTransforms();
-}
-
 void AAPosableCharacter::waving_tickAnimation()
 {
 	// initialization check to avoid crashes.
@@ -309,7 +164,7 @@ void AAPosableCharacter::waving_tickAnimation()
 	}
 	const float currentTime = GetWorld()->GetTimeSeconds();
 	const int32 numBones = posableMeshComponent_reference->GetNumBones();
-	if (waving_initialBoneRotations.Num() != numBones)
+	if (initialBoneRotations.Num() != numBones)
 	{
 		UE_LOG(LogTemp, Warning, TEXT("You need to call session1_initialBoneRotations first!"));
 		return;
@@ -323,7 +178,7 @@ void AAPosableCharacter::waving_tickAnimation()
 				lowerarmBoneName,
 				EBoneSpaces::ComponentSpace);
 		int currentBoneIndex = posableMeshComponent_reference->GetBoneIndex(lowerarmBoneName);
-		FRotator storedRotation = waving_initialBoneRotations[currentBoneIndex];
+		FRotator storedRotation = initialBoneRotations[currentBoneIndex];
 		bone_componentSpaceTransform.SetRotation(storedRotation.Quaternion());
 
 		FTransform parent_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
@@ -364,13 +219,14 @@ void AAPosableCharacter::handToHeart_tickAnimation()
 	}
 	const float currentTime = GetWorld()->GetTimeSeconds();
 	const int32 numBones = posableMeshComponent_reference->GetNumBones();
-	if (waving_initialBoneRotations.Num() != numBones)
+	if (initialBoneRotations.Num() != numBones)
 	{
-		UE_LOG(LogTemp, Warning, TEXT("You need to call session1_initialBoneRotations first!"));
+		UE_LOG(LogTemp, Warning, TEXT("You need to call the initialisation function first!"));
 		return;
 	}
 
 	FName lowerarmBoneName = FName("lowerarm_r");
+	FName upperarmBoneName = FName("upperarm_r");
 
 	if (doesBoneOrSocketNameExists(lowerarmBoneName))
 	{
@@ -378,7 +234,7 @@ void AAPosableCharacter::handToHeart_tickAnimation()
 				lowerarmBoneName,
 				EBoneSpaces::ComponentSpace);
 		int currentBoneIndex = posableMeshComponent_reference->GetBoneIndex(lowerarmBoneName);
-		FRotator storedRotation = waving_initialBoneRotations[currentBoneIndex];
+		FRotator storedRotation = initialBoneRotations[currentBoneIndex];
 		bone_componentSpaceTransform.SetRotation(storedRotation.Quaternion());
 
 		FTransform parent_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
@@ -386,26 +242,56 @@ void AAPosableCharacter::handToHeart_tickAnimation()
 				EBoneSpaces::ComponentSpace);
 		FTransform bone_relativeTransform = bone_componentSpaceTransform.GetRelativeTransform(parent_componentSpaceTransform);
 
-		// calculate the rotation offset angle using a sine wave function
-		float angleOffset = (handToHeart_animationSpeed * currentTime);
-		FRotator rotationOffset(0, angleOffset, -angleOffset);
-		// (Pitch=-39.999999,Yaw=128.978820,Roll=-109.999997)
+		float progress = 0.5f * FMath::Sin(handToHeart_animationSpeed * currentTime) + 0.5f;
 		
 		// apply the offset to the initial rotation
-		FRotator relativeBoneRotation = bone_relativeTransform.Rotator() + rotationOffset;
-		relativeBoneRotation.Yaw = FMath::Clamp(rotationOffset.Yaw, bone_relativeTransform.Rotator().Yaw, 128.978820f);
-		relativeBoneRotation.Roll = FMath::Clamp(rotationOffset.Roll, -109.999997f, bone_relativeTransform.Rotator().Roll);
+		FRotator relativeBoneRotation = bone_relativeTransform.Rotator();
 
-		//relativeBoneRotation.Yaw = FMath::Lerp(bone_relativeTransform.Rotator().Yaw, 128.978820f, angleOffset);
-		//relativeBoneRotation.Roll = FMath::Lerp(bone_relativeTransform.Rotator().Roll, -109.999997f, angleOffset);
-		
-		bone_relativeTransform.SetRotation(relativeBoneRotation.Quaternion());
+		FQuat startRotation = bone_relativeTransform.GetRotation();
+		FQuat targetRotation = FRotator(-39.999999, 128.978820f, -109.999997f).Quaternion();
+		FQuat currentRotation = FQuat::Slerp(startRotation, targetRotation, progress);
+		bone_relativeTransform.SetRotation(currentRotation);
 
 		FTransform newBoneTransform_world = bone_relativeTransform * parent_componentSpaceTransform;
 		posableMeshComponent_reference->SetBoneRotationByName(
 				lowerarmBoneName,
 				newBoneTransform_world.Rotator(),
 				EBoneSpaces::ComponentSpace);
+	}
+	else
+	{
+		UE_LOG(LogTemp, Warning, TEXT("bone: %s not found!"), *lowerarmBoneName.ToString());
+	}
+
+	if (doesBoneOrSocketNameExists(upperarmBoneName))
+	{
+		FTransform bone_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
+			upperarmBoneName,
+			EBoneSpaces::ComponentSpace);
+		int currentBoneIndex = posableMeshComponent_reference->GetBoneIndex(upperarmBoneName);
+		FRotator storedRotation = initialBoneRotations[currentBoneIndex];
+		bone_componentSpaceTransform.SetRotation(storedRotation.Quaternion());
+
+		FTransform parent_componentSpaceTransform = posableMeshComponent_reference->GetBoneTransformByName(
+			posableMeshComponent_reference->GetParentBone(upperarmBoneName),
+			EBoneSpaces::ComponentSpace);
+		FTransform bone_relativeTransform = bone_componentSpaceTransform.GetRelativeTransform(parent_componentSpaceTransform);
+
+		float progress = 0.5f * FMath::Sin(handToHeart_animationSpeed * currentTime) + 0.5f;
+
+		// apply the offset to the initial rotation
+		FRotator relativeBoneRotation = bone_relativeTransform.Rotator();
+
+		FQuat startRotation = bone_relativeTransform.GetRotation();
+		FQuat targetRotation = FRotator(-11.350484, 77.239075, -45.080829).Quaternion();
+		FQuat currentRotation = FQuat::Slerp(startRotation, targetRotation, progress);
+		bone_relativeTransform.SetRotation(currentRotation);
+
+		FTransform newBoneTransform_world = bone_relativeTransform * parent_componentSpaceTransform;
+		posableMeshComponent_reference->SetBoneRotationByName(
+			upperarmBoneName,
+			newBoneTransform_world.Rotator(),
+			EBoneSpaces::ComponentSpace);
 	}
 	else
 	{
@@ -425,9 +311,8 @@ void AAPosableCharacter::BeginPlay()
 		UE_LOG(LogTemp, Warning, TEXT("could not set default sk mesh ref"));
 	}
 	// waving_initializeStartingPose();
-	handToHeart_initializeStartingPose();
-	waving_initialBoneRotations = TArray<FRotator>();
-	storeCurrentPoseRotations(waving_initialBoneRotations);
+	initialBoneRotations = TArray<FRotator>();
+	storeCurrentPoseRotations(initialBoneRotations);
 }
 
 // Called every frame
